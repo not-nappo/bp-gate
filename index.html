@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bp-gate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #333;
+            color: white;
+        }
+
+        button {
+            padding: 10px 30px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            color: #fff;
+            background-color: #eb6100;
+        }
+        button:disabled {
+            color: #fff;
+            background-color: #eb62001e;
+
+        }
+
+        .selected {
+            background-color: #0099eb;
+        }
+
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>ゲートめんどくさい</h1>
+
+    <table>
+        <tr>
+            <th>番号</th>
+            <th>動物</th>
+            <th>これ</th>
+        </tr>
+        <tr>
+            <td><button class="numbers" id="number-1" onclick="selectOption(0)">1</button></td>
+            <td><button class="animals" id="animal-1" onclick="selectAnimal(this, 0)">猪</button></td>
+            <td id="result0"></td>
+        </tr>
+        <tr>
+            <td><button class="numbers" id="number-2" onclick="selectOption(1)">2</button></td>
+            <td><button class="animals" id="animal-2" onclick="selectAnimal(this, 1)">鹿</button></td>
+            <td id="result1"></td>
+        </tr>
+        <tr>
+            <td><button class="numbers" id="number-3" onclick="selectOption(2)">3</button></td>
+            <td><button class="animals" id="animal-3" onclick="selectAnimal(this, 2)">蝶</button></td>
+            <td id="result2"></td>
+        </tr>
+        <tr>
+            <td><button class="numbers" id="number-4" onclick="selectOption(3)">4</button></td>
+            <td><button class="animals" id="animal-4" onclick="selectAnimal(this, 3)">鳥</button></td>
+            <td id="result3"></td>
+        </tr>
+        <tr>
+            <td><button class="numbers" id="number-5" onclick="selectOption(4)">5</button></td>
+            <td><button class="animals" id="animal-5" onclick="selectAnimal(this, 4)">月</button></td>
+            <td id="result4"></td>
+        </tr>
+    </table>
+
+    <div>
+        <button onclick="initialize(1)">Aゲート</button>
+        <button onclick="initialize(2)">Bゲート</button>
+    </div>
+
+    <script>
+        let part = 1;
+        let currentNumber = null;
+        let animals = [];
+        const animal1 = ['猪', '鹿', '蝶', '鳥'];
+        const animal2 = ['猪', '鹿', '蝶', '鳥', '月'];
+
+        const close = () => {
+            document.querySelectorAll('button.numbers').forEach(el => el.disabled = true);
+            document.querySelectorAll('button.animals').forEach(el => el.disabled = true);
+        }
+
+        const draw = () => {
+            const selectedAnimals = part === 1 ? animal1 : animal2;
+            [...Array(5)].map((_, i) => {
+                const str = selectedAnimals[animals[i]];
+                document.getElementById(`result${i}`).innerText = !str ? '' : str;
+            });
+            if (Number.isFinite(currentNumber)) {
+                document.querySelectorAll('button.numbers').forEach(el => el.classList.remove('selected'));
+                document.getElementById(`number-${Number(currentNumber) + 1}`).classList.add('selected');
+            } else {
+                document.querySelectorAll('button.numbers').forEach(el => el.classList.remove('selected'));
+            }
+        }
+
+        const selectOption = (value) => {
+            currentNumber = value;
+            if (Number.isFinite(animals[value])) {
+                const animal = animals[value];
+                animals[value] = null;
+                document.getElementById(`animal-${Number(value) + 1}`).disabled = false;
+             }
+             draw();
+        }
+
+        const selectAnimal = (el, value) => {
+            if (!Number.isFinite(currentNumber)) { return; }
+
+            animals[currentNumber] = value;
+            el.disabled = true
+            currentNumber = null;
+
+            const current = animals.filter((animal) => Number.isFinite(animal)).length
+            console.log(current);
+            switch (part) {
+                case 1:
+                    if (current >= 3) {
+                        const restIndex = animal1.findIndex(((_, i) => !animals.includes(i)));
+                        [...Array(4)].forEach((_, i) => {
+                            if (!Number.isFinite(animals[i])) { animals[i] = restIndex }
+                        })
+                        close();
+                    }
+                    break;
+                case 2:
+                    if (current >= 4) {
+                        const restIndex = animal2.findIndex(((_, i) => !animals.includes(i)));
+                        [...Array(5)].forEach((_, i) => {
+                            if (!Number.isFinite(animals[i])) { animals[i] = restIndex }
+                        })
+                        close();
+                    }
+                    break;
+            }
+            draw();
+        }
+
+        const initialize = (newPart) => {
+            part = newPart || 1;
+            currentNumber = null;
+            animals = [];
+            document.querySelectorAll('button[disabled]').forEach(element => {
+                element.disabled = false;
+            });
+            switch (part) {
+                case 1:
+                    document.getElementById('number-5').disabled = true;
+                    document.getElementById('animal-5').disabled = true;
+                    break;
+                case 2:
+                    document.getElementById('number-5').disabled = false;
+                    document.getElementById('animal-5').disabled = false;
+                    break;
+            }
+            draw();
+        }
+
+        initialize();
+    </script>
+</body>
+</html>
